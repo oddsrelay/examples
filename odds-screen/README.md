@@ -13,7 +13,8 @@ python3 main.py --sports tennis
 
 | Option | What it does |
 |---|---|
-| `--sports`, `--bookmakers`, `--region` | Filters, passed to the API as given (comma-separated keys) |
+| `--sports`, `--bookmakers` | Filters, passed to the API as given (comma-separated keys) |
+| `--region` | One region code, passed as given |
 | `--markets` | Market keys; `h2h` by default |
 | `--limit` | Events in the page |
 | `--cursor` | Read the next page: the script prints the cursor when there is one |

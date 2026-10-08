@@ -29,11 +29,12 @@ def run(sent: list, quote: dict, board, *argv: str) -> None:
 
 class CsvExportTest(unittest.TestCase):
     def test_standard_board(self):
-        rows = list(main.rows(load("v2-odds-type.standard_filtered.json")["data"]))
+        board = load("v2-odds-type.standard_filtered.json")["data"]
+        rows = list(main.rows(board))
         self.assertEqual([(r["side"], r["venue"], r["price"]) for r in rows],
                          [("back", "william_hill", 2.9), ("lay", "betfair_exchange", 3.45)])
         self.assertEqual(rows[1]["available"], 175.0)
-        self.assertEqual(rows[0]["event"], "Sijia Wei v Zhuoxuan Bai")
+        self.assertEqual(rows[0]["event"], f"{board[0]['home_team']} v {board[0]['away_team']}")
 
     def test_each_way_board_splits_the_lay_object(self):
         rows = list(main.rows(load("v2-odds-type.each_way.json")["data"]))

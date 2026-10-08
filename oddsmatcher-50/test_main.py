@@ -32,13 +32,15 @@ class OddsmatcherTest(unittest.TestCase):
         self.assertAlmostEqual(main.rating(3.0, 3.1, 0.02), 100 * 3.0 * 0.98 / 3.08)
 
     def test_standard_board(self):
-        rows = list(main.pairs(load("v2-odds-type.standard_filtered.json")["data"], 0.0))
+        board = load("v2-odds-type.standard_filtered.json")["data"]
+        rows = list(main.pairs(board, 0.0))
         self.assertEqual(len(rows), 1)
         score, event, market, outcome, back, lay = rows[0]
         self.assertAlmostEqual(score, 100 * 2.9 / 3.45)
-        self.assertEqual((market["key"], outcome["name"]), ("h2h", "Sijia Wei"))
+        self.assertEqual(market["key"], "h2h")
+        self.assertIs(outcome, board[0]["markets"][0]["outcomes"][0])
         self.assertEqual((back["bookmaker"], lay["exchange"]), ("william_hill", "betfair_exchange"))
-        self.assertEqual(main.label(event), "Sijia Wei v Zhuoxuan Bai")
+        self.assertEqual(main.label(event), f"{event['home_team']} v {event['away_team']}")
 
     def test_every_back_offer_meets_the_lowest_lay(self):
         rows = list(main.pairs(load("v2-odds-type.bog_bare.json"), 0.0))  # format=bare: a list, no envelope

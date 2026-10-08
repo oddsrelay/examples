@@ -1,5 +1,5 @@
 """An oddsmatcher in about 50 lines: each bookmaker back price on a matched board beside the
-lowest exchange lay price, sorted by a rating this script calculates (the feed sends prices only).
+lowest exchange lay price, sorted by a rating this script calculates (the feed sends no rating).
 
 Run: ODDSRELAY_KEY=<your key> python3 main.py --sports tennis
 """
@@ -30,7 +30,7 @@ def pairs(events: list[dict], commission: float) -> Iterator[tuple]:
     for event in events:
         for market in event["markets"]:
             for outcome in market["outcomes"]:
-                # The API sorts lays cheapest first, so lays[0] is the one to beat.
+                # Lays come in price order, so lays[0] is the lowest on offer.
                 lays = [lay for lay in outcome.get("lay") or [] if lay.get("price")]
                 if not lays or lays[0]["price"] <= commission:
                     continue
@@ -45,7 +45,7 @@ def main() -> None:
     ap = argparse.ArgumentParser(description="Rate every back and lay pair on a matched board.")
     ap.add_argument("--board", choices=["standard", "2up", "bog"], default="standard")
     for name in FILTERS:
-        ap.add_argument(f"--{name}", help="comma-separated keys, as the API lists them")
+        ap.add_argument(f"--{name}", help="one region code" if name == "region" else "comma-separated keys")
     ap.add_argument("--commission", type=float, default=0.0, help="your exchange commission, as a fraction")
     ap.add_argument("--top", type=int, default=20, help="how many rows to print")
     ap.add_argument("--max-tokens", type=int, help="spend up to this many tokens without asking")

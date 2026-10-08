@@ -2,7 +2,7 @@
 
 An oddsmatcher in about 50 lines of Python. It reads a matched board, pairs each bookmaker back price with
 the lowest exchange lay price for the same selection, and sorts the pairs by a rating it calculates. The feed
-sends prices only: the rating is this script's own arithmetic.
+sends prices and the liquidity behind each lay, never a rating, so the rating is this script's own arithmetic.
 
 ## Run
 
@@ -14,7 +14,8 @@ python3 main.py --sports tennis
 | Option | What it does |
 |---|---|
 | `--board` | `standard` (the default), `2up` or `bog`: the boards whose lay side is a plain list |
-| `--sports`, `--bookmakers`, `--exchanges`, `--markets`, `--region` | Filters, passed to the API as given (comma-separated keys) |
+| `--sports`, `--bookmakers`, `--exchanges`, `--markets` | Filters, passed to the API as given (comma-separated keys) |
+| `--region` | One region code, passed as given |
 | `--commission` | Your exchange's commission as a fraction from 0 to 1 (such as `0.02`), used in the rating |
 | `--top` | How many rows to print |
 | `--max-tokens` | Spend up to this many tokens without asking |

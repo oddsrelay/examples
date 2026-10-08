@@ -51,7 +51,7 @@ def main() -> None:
     ap = argparse.ArgumentParser(description="Write a matched board to CSV, one row per offer.")
     ap.add_argument("--board", choices=BOARDS, default="standard")
     for name in FILTERS:
-        ap.add_argument(f"--{name}", help="comma-separated keys, as the API lists them")
+        ap.add_argument(f"--{name}", help="one region code" if name == "region" else "comma-separated keys")
     ap.add_argument("--out", default="board.csv", help="the CSV file to write")
     ap.add_argument("--max-tokens", type=int, help="spend up to this many tokens without asking")
     args = ap.parse_args()
