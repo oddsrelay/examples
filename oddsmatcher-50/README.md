@@ -15,7 +15,7 @@ python3 main.py --sports tennis
 |---|---|
 | `--board` | `standard` (the default), `2up` or `bog`: the boards whose lay side is a plain list |
 | `--sports`, `--bookmakers`, `--exchanges`, `--markets`, `--region` | Filters, passed to the API as given (comma-separated keys) |
-| `--commission` | Your exchange's commission as a fraction, used in the rating |
+| `--commission` | Your exchange's commission as a fraction from 0 to 1 (such as `0.02`), used in the rating |
 | `--top` | How many rows to print |
 | `--max-tokens` | Spend up to this many tokens without asking |
 
@@ -29,7 +29,8 @@ rating = 100 × back × (1 − commission) ÷ (lay − commission)
 ```
 
 It compares a back price with a lay price once the exchange's commission is taken into account. At 100 the
-two prices balance exactly; above 100 the back price is the longer of the two, below 100 the shorter.
+two prices balance exactly. Above 100 the back price is longer than the lay price once commission is
+taken off; below 100 it is shorter.
 
 ## Test
 

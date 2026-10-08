@@ -38,7 +38,7 @@ def main() -> None:
         ap.add_argument(f"--{name}", help="comma-separated keys, as the API lists them")
     ap.add_argument("--markets", default="h2h", help="comma-separated market keys")
     ap.add_argument("--limit", type=int, help="events in the page")
-    ap.add_argument("--cursor", help="the previous page's meta.next_cursor")
+    ap.add_argument("--cursor", help="the cursor printed by the run before")
     ap.add_argument("--max-tokens", type=int, help="spend up to this many tokens without asking")
     args = ap.parse_args()
     params = {name: getattr(args, name) for name in FILTERS}

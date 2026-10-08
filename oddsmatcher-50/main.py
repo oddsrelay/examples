@@ -30,7 +30,8 @@ def pairs(events: list[dict], commission: float) -> Iterator[tuple]:
     for event in events:
         for market in event["markets"]:
             for outcome in market["outcomes"]:
-                lays = [lay for lay in outcome.get("lay") or [] if lay.get("price")]  # lowest price first
+                # The API sorts lays cheapest first, so lays[0] is the one to beat.
+                lays = [lay for lay in outcome.get("lay") or [] if lay.get("price")]
                 if not lays or lays[0]["price"] <= commission:
                     continue
                 lay = lays[0]
@@ -49,6 +50,8 @@ def main() -> None:
     ap.add_argument("--top", type=int, default=20, help="how many rows to print")
     ap.add_argument("--max-tokens", type=int, help="spend up to this many tokens without asking")
     args = ap.parse_args()
+    if not 0 <= args.commission < 1:
+        ap.error("--commission is a fraction from 0 to 1, such as 0.02")
     path, params = f"/v2/odds/{args.board}", {name: getattr(args, name) for name in FILTERS}
     if not afford(get(path, {**params, "quote": "true"})[2], args.max_tokens):
         sys.exit("not fetched: narrow the filters, or pass --max-tokens")

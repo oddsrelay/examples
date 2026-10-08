@@ -1,8 +1,11 @@
 import csv
 import io
 import json
+import tempfile
 import unittest
+from contextlib import redirect_stderr, redirect_stdout
 from pathlib import Path
+from unittest import mock
 
 import main
 
@@ -11,6 +14,17 @@ FIXTURES = Path(__file__).resolve().parent.parent / "fixtures"
 
 def load(name: str):
     return json.loads((FIXTURES / name).read_text())
+
+
+def run(sent: list, quote: dict, board, *argv: str) -> None:
+    """main() with get() faked: the quote call answers `quote`, the data call `board`."""
+    def fake_get(path, params, headers=None):
+        sent.append(params.get("quote"))
+        return 200, {}, quote if params.get("quote") else board
+    with mock.patch.object(main, "get", fake_get), mock.patch("sys.argv", ["main.py", *argv]), \
+            mock.patch("sys.stdin", io.StringIO()), redirect_stdout(io.StringIO()), \
+            redirect_stderr(io.StringIO()):
+        main.main()
 
 
 class CsvExportTest(unittest.TestCase):
@@ -35,7 +49,7 @@ class CsvExportTest(unittest.TestCase):
 
     def test_write_csv(self):
         out = io.StringIO()
-        count = main.write_csv(load("v2-odds-type.bog_bare.json"), out)  # format=bare: the data array alone
+        count = main.write_csv(load("v2-odds-type.bog_bare.json"), out)  # format=bare: a list, no envelope
         out.seek(0)
         table = list(csv.DictReader(out))
         self.assertEqual(count, 4)
@@ -43,6 +57,20 @@ class CsvExportTest(unittest.TestCase):
         self.assertEqual(list(table[0]), main.FIELDS)
         self.assertEqual((table[3]["side"], table[3]["venue"], table[3]["price"]), ("lay", "smarkets", "4.4"))
         self.assertEqual(table[0]["point"], "")  # absent fields are empty cells
+
+
+    def test_main_quotes_before_it_spends(self):
+        with tempfile.TemporaryDirectory() as folder:
+            out = str(Path(folder) / "board.csv")
+            sent = []
+            board = load("v2-odds-type.standard_filtered.json")
+            run(sent, load("v2-odds-type.quote.json"), board, "--out", out)
+            self.assertEqual(sent, ["true", None])
+            self.assertEqual(len(Path(out).read_text().splitlines()), 3)  # the header and two offers
+            sent = []  # a priced quote, no --max-tokens and no terminal to ask at: nothing is spent
+            priced = {"cost": 50, "remaining": None, "rate_card": "2026-09"}
+            self.assertRaises(SystemExit, run, sent, priced, None, "--out", out + ".2")
+            self.assertEqual(sent, ["true"])
 
 
 if __name__ == "__main__":

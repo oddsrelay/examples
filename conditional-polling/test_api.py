@@ -56,6 +56,18 @@ class GetTest(unittest.TestCase):
             self.assertEqual(api.get("/v2/odds/standard", {})[2], [])
         sleep.assert_called_once_with(2)
 
+    def test_429_gives_up_after_three_tries_without_a_last_wait(self):
+        replies = [refusal(429, Retry_After="2") for _ in range(4)]
+        with mock.patch("api.urlopen", side_effect=replies) as urlopen, mock.patch("api.time.sleep") as sleep:
+            self.assertRaises(SystemExit, api.get, "/v2/odds/standard", {})
+        self.assertEqual((urlopen.call_count, sleep.call_count), (3, 2))
+
+    def test_a_pasted_newline_is_stripped_from_the_key(self):
+        with mock.patch.dict(os.environ, {"ODDSRELAY_KEY": f"{KEY}\r\n"}), \
+                mock.patch("api.urlopen", return_value=Reply(200, message(), b"[]")) as urlopen:
+            api.get("/v2/odds/standard", {})
+        self.assertEqual(urlopen.call_args[0][0].get_header("Authorization"), f"Bearer {KEY}")
+
     def test_errors_exit_with_the_code_and_request_id_never_the_key(self):
         body = (FIXTURES / "error-401.invalid_api_key.json").read_bytes()
         with mock.patch("api.urlopen", side_effect=refusal(401, body)), self.assertRaises(SystemExit) as stop:

@@ -1,6 +1,6 @@
-"""Poll a matched board politely: send the last ETag back as If-None-Match, so a board that has not
-changed answers 304 with no body, free. Waits at least the reply's Cache-Control max-age between
-polls, and api.get waits out any 429 for as long as Retry-After says.
+"""Poll a matched board politely: return the last ETag as If-None-Match, and an unchanged board
+comes back as an empty 304 Not Modified that costs nothing. Waits at least the reply's Cache-Control
+max-age between polls, and api.get waits out any 429 for as long as Retry-After says.
 
 Run: ODDSRELAY_KEY=<your key> python3 main.py --sports tennis
 """
@@ -32,7 +32,7 @@ def poll(fetch: Callable[[dict], tuple[int, Any, Any]], polls: int, every: float
         status, headers, board = fetch({"If-None-Match": etag} if etag else {})
         cost = headers.get("X-Tokens-Cost")
         if status == 304:
-            print(f"poll {n}: 304 not modified, no body (cost {cost})")
+            print(f"poll {n}: 304, unchanged since the last poll (cost {cost})")
         else:
             etag = headers.get("ETag")
             print(f"poll {n}: {status}, events {len(board['data'])}, "
