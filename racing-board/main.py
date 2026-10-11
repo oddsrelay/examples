@@ -81,7 +81,7 @@ def send(text: str) -> None:
     hook, bot, chat = (os.environ.get(name, "").strip()
                        for name in ("DISCORD_WEBHOOK_URL", "TELEGRAM_BOT_TOKEN", "TELEGRAM_CHAT_ID"))
     if hook:  # Discord asks for a User-Agent in this form; parse [] stops any @mention pinging the channel
-        url, headers = hook, {"User-Agent": "DiscordBot (https://github.com/oddsrelay/examples, 1)"}
+        url, headers = hook, {"User-Agent": "DiscordBot (https://oddsrelay.io, 1)"}
         body = {"content": f"```\n{text}\n```", "allowed_mentions": {"parse": []}}
     elif bot and chat:
         url, headers = f"https://api.telegram.org/bot{bot}/sendMessage", {}
