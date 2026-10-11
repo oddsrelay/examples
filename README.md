@@ -9,6 +9,7 @@ Python 3.9 or later and nothing else: there are no packages to install.
 | [odds-screen](odds-screen) | The best back price for each selection across every venue on the raw board, and which venues offer it. |
 | [conditional-polling](conditional-polling) | Polling a board with `ETag` and `If-None-Match`: an unchanged board comes back as an empty `304 Not Modified` that costs nothing. |
 | [csv-export](csv-export) | Any matched board written to CSV, one row per back or lay offer. |
+| [racing-board](racing-board) | The next races' prices from a racing board, posted to a Discord channel or a Telegram chat, and only when the board has changed. |
 
 ## Run one
 
