@@ -11,6 +11,11 @@ Python 3.9 or later and nothing else: there are no packages to install.
 | [csv-export](csv-export) | Any matched board written to CSV, one row per back or lay offer. |
 | [racing-board](racing-board) | The next races' prices from a racing board, posted to a Discord channel or a Telegram chat, and only when the board has changed. |
 
+## Get a key
+
+Sign up at [app.oddsrelay.io/signup](https://app.oddsrelay.io/signup) and copy your key from the dashboard.
+Free gives you 50,000 tokens for 14 days from sign-up, with no card, then no tokens until you choose a plan, on the same key. [Plans and token prices](https://oddsrelay.io/pricing).
+
 ## Run one
 
 ```sh
@@ -19,8 +24,7 @@ cd oddsmatcher-50
 python3 main.py --sports tennis
 ```
 
-Every script takes `--help`. The key comes from your OddsRelay account; the [docs](https://oddsrelay.io/docs)
-cover keys, routes and parameters.
+Every script takes `--help`. The [docs](https://oddsrelay.io/docs) cover routes and parameters.
 
 ## What every example does
 
@@ -44,10 +48,15 @@ They make no network calls and need no key.
 for m in */main.py; do (cd "$(dirname "$m")" && python3 -m unittest -v) || break; done
 ```
 
-## Links
+## More from OddsRelay
 
-- Docs: https://oddsrelay.io/docs
-- OpenAPI file: https://api.oddsrelay.io/v2/openapi.json
+- [oddsrelay-python](https://github.com/oddsrelay/oddsrelay-python): the Python client, `pip install oddsrelay`
+- [oddsrelay-js](https://github.com/oddsrelay/oddsrelay-js): the JavaScript and TypeScript client, `npm install oddsrelay`
+- [oddsrelay-r](https://github.com/oddsrelay/oddsrelay-r): the R client
+- [oddsrelay-mcp](https://github.com/oddsrelay/oddsrelay-mcp): an MCP server that gives Claude, Cursor and other AI assistants read access, with a token cap
+- [oddsrelay-sheets](https://github.com/oddsrelay/oddsrelay-sheets): formulas and a template spreadsheet for Google Sheets
+- [Libraries and tools](https://oddsrelay.io/docs/libraries), the [docs](https://oddsrelay.io/docs), the [API reference](https://oddsrelay.io/docs/reference) and the [OpenAPI file](https://api.oddsrelay.io/v2/openapi.json)
+- Contact: hello@oddsrelay.io
 
 ## License
 
