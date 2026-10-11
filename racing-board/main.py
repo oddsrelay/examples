@@ -2,13 +2,15 @@
 
 For each race: every runner's best back price, the bookmakers offering it (with their each-way terms on
 the each-way and extra-place boards) and the lowest exchange lay for the win. Prices only, no advice.
-The last post's ETag goes back as If-None-Match, so an unchanged board is a free 304 and nothing is sent.
+The last post's ETag goes back as If-None-Match, so an unchanged board is a free 304 and nothing is sent. A board
+that changed only where the table does not look (a place lay, a price below the best) posts nothing either.
 
 Run: ODDSRELAY_KEY=<your key> python3 main.py --dry-run
 """
 from __future__ import annotations
 
 import argparse
+import hashlib
 import html
 import json
 import os
@@ -16,6 +18,7 @@ import re
 import sys
 from datetime import datetime, timedelta, timezone
 from fractions import Fraction
+from http.client import HTTPException
 from pathlib import Path
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
@@ -70,7 +73,7 @@ def message(events: list[dict], runners: int) -> str:
     text = ""
     for n, block in enumerate(blocks):
         more = f"(+{len(blocks) - n} more races: narrow --hours or --bookmakers)"
-        if len(text) + len(block) + len(more) > MAX_CHARS:
+        if len(text) + len(block) + 2 + len(more) > MAX_CHARS:  # 2: the blank line after the block
             return text + more
         text += block + "\n\n"
     return text.rstrip()
@@ -88,13 +91,15 @@ def send(text: str) -> None:
         body = {"chat_id": chat, "parse_mode": "HTML", "text": f"<pre>{html.escape(text, quote=False)}</pre>"}
     else:
         sys.exit("set DISCORD_WEBHOOK_URL, or TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID, or pass --dry-run")
-    req = Request(url, data=json.dumps(body).encode(), headers={"Content-Type": "application/json", **headers})
-    try:  # error messages never name the URL: it carries the webhook's or the bot's token
+    try:  # no message names the URL: it carries the webhook's or the bot's token
+        req = Request(url, data=json.dumps(body).encode(), headers={"Content-Type": "application/json", **headers})
         urlopen(req, timeout=30).close()
     except HTTPError as err:
         sys.exit(f"the post was refused: HTTP {err.code} {err.read()[:200].decode(errors='replace')}")
     except URLError as err:
         sys.exit(f"could not post: {err.reason}")
+    except (ValueError, HTTPException) as err:  # a malformed URL or token: Python's own message would quote it
+        sys.exit(f"could not post ({type(err).__name__}): check DISCORD_WEBHOOK_URL, or TELEGRAM_BOT_TOKEN")
 
 
 def main() -> None:
@@ -104,7 +109,7 @@ def main() -> None:
     ap.add_argument("--bookmakers", help="comma-separated bookmaker keys (all of them if left out)")
     ap.add_argument("--runners", type=int, default=10, help="most runners shown per race")
     ap.add_argument("--max-tokens", type=int, help="spend up to this many tokens without asking")
-    ap.add_argument("--state", default=".racing-board-etag", help="file that keeps the last post's ETag")
+    ap.add_argument("--state", default=".racing-board-etag", help="file that keeps the last post's ETag and digest")
     ap.add_argument("--dry-run", action="store_true", help="print the table instead of posting it")
     args = ap.parse_args()
     now = datetime.now(timezone.utc).replace(microsecond=0)
@@ -114,7 +119,8 @@ def main() -> None:
     if not afford(get(path, {**params, "quote": "true"})[2], args.max_tokens):
         sys.exit("not fetched: pass --max-tokens to allow this price")
     state = Path(args.state)
-    etag = state.read_text().strip() if state.exists() and not args.dry_run else ""  # a dry run always prints
+    saved = state.read_text().splitlines() if state.exists() and not args.dry_run else []  # a dry run always prints
+    etag, last = (saved + ["", ""])[:2]  # the last post's ETag, then a digest of its text
     status, headers, events = get(path, params, {"If-None-Match": etag} if etag else None)
     if status == 304 or not events:
         print("nothing sent: " + ("unchanged since the last post" if status == 304 else "no races in the window"))
@@ -123,8 +129,12 @@ def main() -> None:
     if args.dry_run:
         print(text)
         return
-    send(text)
-    state.write_text(headers.get("ETag") or "")
+    digest = hashlib.sha256(text.encode()).hexdigest()
+    if digest == last:  # the board moved where the table does not look: keep the new ETag, post nothing
+        print("nothing sent: the table is the same as the last post")
+    else:
+        send(text)
+    state.write_text(f"{headers.get('ETag') or ''}\n{digest}")
 
 
 if __name__ == "__main__":

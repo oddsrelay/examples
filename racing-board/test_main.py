@@ -1,6 +1,7 @@
 import io
 import json
 import os
+import random
 import tempfile
 import unittest
 from contextlib import redirect_stderr, redirect_stdout
@@ -67,6 +68,21 @@ class TableTest(unittest.TestCase):
         self.assertIn("more races", text)
         self.assertEqual(main.message(BOG, 10), main.race(BOG[0], 10))
 
+    def test_no_message_passes_max_chars(self):
+        rng = random.Random(7)
+        for _ in range(500):
+            board = []
+            for n in range(rng.randint(1, 40)):
+                event = json.loads(json.dumps(BOG[0]))
+                event["event_id"], event["commence_time"] = f"e{n}", f"2026-10-11T{10 + n % 10}:{n % 60:02}:00Z"
+                event["venue"] = "V" * rng.randint(3, 20)
+                event["markets"][0]["outcomes"] = [
+                    {"name": "R" * rng.randint(3, 25) + str(r), "lay": [],
+                     "back": [{"bookmaker": "b" * rng.randint(3, 15), "price": rng.choice([2.5, 11.0, 101.0]), "link": None}]}
+                    for r in range(rng.randint(1, 12))]
+                board.append(event)
+            self.assertLessEqual(len(main.message(board, 10)), main.MAX_CHARS)
+
 
 @mock.patch.dict(os.environ, {"DISCORD_WEBHOOK_URL": "", "TELEGRAM_BOT_TOKEN": "", "TELEGRAM_CHAT_ID": ""})
 class SendTest(unittest.TestCase):
@@ -96,6 +112,14 @@ class SendTest(unittest.TestCase):
             main.send("x")
         self.assertIn("HTTP 404", str(stop.exception))
         self.assertNotIn(TOKEN, str(stop.exception))
+
+    def test_a_malformed_url_or_token_is_never_named(self):
+        for env in ({"DISCORD_WEBHOOK_URL": f"discord.com/api/webhooks/1/{TOKEN}"},
+                    {"TELEGRAM_BOT_TOKEN": f"1:{TOKEN} x", "TELEGRAM_CHAT_ID": "@racing_prices"}):
+            with mock.patch.dict(os.environ, env), self.assertRaises(SystemExit) as stop:
+                main.send("x")
+            self.assertIn("could not post", str(stop.exception))
+            self.assertNotIn(TOKEN, str(stop.exception))
 
     def test_no_destination_stops(self):
         with mock.patch("main.urlopen") as urlopen:
@@ -129,11 +153,24 @@ class MainTest(unittest.TestCase):
         sent, send, _ = self.run_main([(200, {"ETag": '"c1-gz"'}, BOG)])
         self.assertEqual(sent, [("true", None), (None, None)])  # the quote first
         send.assert_called_once_with(main.race(BOG[0], 10))
-        self.assertEqual(Path(self.state).read_text(), '"c1-gz"')
+        self.assertEqual(Path(self.state).read_text().splitlines()[0], '"c1-gz"')
         sent, send, out = self.run_main([(304, {"ETag": '"c1-gz"'}, None)])
         self.assertEqual(sent[1], (None, '"c1-gz"'))
         send.assert_not_called()
         self.assertIn("unchanged", out)
+
+    def test_a_new_etag_with_the_same_table_posts_nothing(self):
+        self.run_main([(200, {"ETag": '"c1-gz"'}, BOG)])
+        moved = json.loads(json.dumps(BOG))
+        moved[0]["markets"][0]["outcomes"][0]["back"].append({"bookmaker": "coral", "price": 3.5, "link": None})
+        sent, send, out = self.run_main([(200, {"ETag": '"c2-gz"'}, moved)])
+        self.assertEqual(sent[1], (None, '"c1-gz"'))
+        send.assert_not_called()
+        self.assertIn("same as the last post", out)
+        self.assertEqual(Path(self.state).read_text().splitlines()[0], '"c2-gz"')  # the next run can get a 304
+        moved[0]["markets"][0]["outcomes"][0]["back"].append({"bookmaker": "coral", "price": 5.0, "link": None})
+        _, send, _ = self.run_main([(200, {"ETag": '"c3-gz"'}, moved)])
+        send.assert_called_once()
 
     def test_dry_run_prints_and_keeps_no_etag(self):
         sent, send, out = self.run_main([(200, {"ETag": '"c1-gz"'}, BOG)], "--dry-run")

@@ -10,6 +10,10 @@ board has not changed, the API answers `304 Not Modified`, which costs nothing, 
 it safe to run from a scheduler such as cron. It asks for `format=bare`, the event list without the envelope,
 because the envelope's `meta` times would change the `ETag` with every new board.
 
+The `ETag` labels the whole board, so it also moves when something the table does not show changes, such as a place
+lay or a price below the best. The file therefore also keeps a digest of the last post's text, and a table that
+reads the same as the last one is not posted again.
+
 ## Run
 
 ```sh
@@ -40,7 +44,7 @@ environment, never in the script, and the script never prints them, not even in 
 | `--bookmakers` | Bookmaker keys, comma-separated, as `/v2/bookmakers` lists them; all of them if left out |
 | `--runners` | Most runners shown per race, shortest price first (default 10) |
 | `--max-tokens` | Spend up to this many tokens without asking |
-| `--state` | The file that keeps the last post's `ETag` (default `.racing-board-etag`) |
+| `--state` | The file that keeps the last post's `ETag` and a digest of its text (default `.racing-board-etag`) |
 | `--dry-run` | Print the table instead of posting it, ignoring the saved `ETag`, and save nothing |
 
 The quote at the start prices the call and costs nothing. On the racing boards a call costs the same whatever
