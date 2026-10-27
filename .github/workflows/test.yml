@@ -20,5 +20,8 @@ jobs:
           python-version: ${{ matrix.python }}
       - name: Every folder carries the same api.py
         run: for f in */api.py; do cmp "$f" oddsmatcher-50/api.py; done
+      - name: flumine, for flumine-bookmaker-prices (it needs Python 3.10 or later)
+        if: matrix.python != '3.9'
+        run: pip install -r flumine-bookmaker-prices/requirements.txt
       - name: Tests (no network, no key)
         run: for m in */main.py; do (cd "$(dirname "$m")" && python -m unittest -v) || exit 1; done
