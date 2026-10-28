@@ -1,0 +1,418 @@
+{
+  "name": "Keep an oddsmatcher sheet of UK back and lay prices with OddsRelay",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## Keep an oddsmatcher sheet of UK back and lay prices\n\n### How it works\nFor people in the UK and Ireland who compare bookmaker back prices with exchange lay prices in a spreadsheet. On a schedule, **Check the price** asks the OddsRelay API what the matched board call costs (free), and reads the board only if that is within your cap. **One row per back and lay** puts each bookmaker price beside the lowest exchange lay for the same outcome, with two ratings: back / lay x 100, and the same after your exchange commission. **Add or update rows** adds new rows and updates earlier ones, matched on `row_key`.\n\nIf a call fails (a wrong key, no tokens left), the run stops before the sheet changes. Rows are never deleted: a row whose `checked_at` is older than the latest run has left the board.\n\n### Setup\n1. Sign up at [app.oddsrelay.io](https://app.oddsrelay.io/signup) and copy your API key. Free gives you 50,000 tokens for 14 days from sign-up, with no card, then no tokens until you choose a plan, on the same key.\n2. Create a **Header Auth** credential with Name `x-api-key` and your API key as the Value, and pick it in both HTTP Request nodes.\n3. Type `row_key` in cell A1 of an empty Google Sheet. In **Add or update rows**, connect Google Sheets, choose that file and sheet, and check that Column to match on is `row_key`.\n4. Adjust **Settings**, run the workflow once, check the sheet, then publish it.\n\n### Customization\n**Settings** holds the board (`standard`, `2up` or `bog`), comma-separated `sports`, `markets`, `bookmakers` and `exchanges` keys (from the API's `/v2/sports` and `/v2/bookmakers`), `commissionPercent` and `maxTokensPerRun`. For `bog`, set sports to `horse_racing` and markets to `win`. Each run spends the call's price, so pick a schedule that suits your plan.",
+        "height": 1080,
+        "width": 660,
+        "color": 1
+      },
+      "id": "de0fdb84-2ec5-5e3c-80bc-612e36c35876",
+      "name": "Overview",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -740,
+        -60
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## 1. Price the call first\nYour settings, then a free price check. The board is read only when the price is within `maxTokensPerRun`; above it, the run stops and shows the price.",
+        "height": 560,
+        "width": 1100,
+        "color": 7
+      },
+      "id": "7dc06808-8bda-5bc0-ade8-74623ecf890f",
+      "name": "Section: Price the call first",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -40,
+        120
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## 2. One row per back and lay\nEach bookmaker back price beside the lowest exchange lay for the same outcome, rated with and without your commission.",
+        "height": 560,
+        "width": 520,
+        "color": 7
+      },
+      "id": "80ad9a93-9d65-5a87-887a-9a43111fab07",
+      "name": "Section: One row per back and lay",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1080,
+        120
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## 3. Update the sheet\nNew rows are added and earlier ones updated, matched on `row_key`.",
+        "height": 560,
+        "width": 320,
+        "color": 7
+      },
+      "id": "086e82b2-e1ac-55a4-adcc-d56c78789d73",
+      "name": "Section: Update the sheet",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1620,
+        120
+      ]
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes",
+              "minutesInterval": 30
+            }
+          ]
+        }
+      },
+      "id": "2e87e2e2-166e-5497-aaf0-fcd53f69ae0d",
+      "name": "On a schedule",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "40002ac8-e0fe-52e7-b7b3-91cb6519216e",
+              "name": "board",
+              "value": "standard",
+              "type": "string"
+            },
+            {
+              "id": "8b661ac4-8d64-5085-84d9-677ac4e0f741",
+              "name": "sports",
+              "value": "soccer_english_premier_league,soccer_england_championship",
+              "type": "string"
+            },
+            {
+              "id": "1bb61b82-4c3e-5a89-8b50-b5b7e55d43f3",
+              "name": "markets",
+              "value": "h2h",
+              "type": "string"
+            },
+            {
+              "id": "8a7abddd-1990-5516-800a-830b7297e323",
+              "name": "bookmakers",
+              "value": "william_hill,paddy_power,sky_bet",
+              "type": "string"
+            },
+            {
+              "id": "3f2a2d70-e1df-5ee0-a65a-bdfd88f73419",
+              "name": "exchanges",
+              "value": "betfair_exchange,smarkets,matchbook",
+              "type": "string"
+            },
+            {
+              "id": "196d1de4-bcb8-524d-87c3-979f5cf16a48",
+              "name": "commissionPercent",
+              "value": 2,
+              "type": "number"
+            },
+            {
+              "id": "1ac30250-a76e-57f9-97d5-7054a1af83bd",
+              "name": "maxTokensPerRun",
+              "value": 100,
+              "type": "number"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "e3626e75-9a16-5cf2-9f3e-fbbb37d39f6a",
+      "name": "Settings",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        220,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "url": "=https://api.oddsrelay.io/v2/odds/{{ $('Settings').first().json.board }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "quote",
+              "value": "true"
+            },
+            {
+              "name": "sports",
+              "value": "={{ $('Settings').first().json.sports }}"
+            },
+            {
+              "name": "markets",
+              "value": "={{ $('Settings').first().json.markets }}"
+            },
+            {
+              "name": "bookmakers",
+              "value": "={{ $('Settings').first().json.bookmakers }}"
+            },
+            {
+              "name": "exchanges",
+              "value": "={{ $('Settings').first().json.exchanges }}"
+            },
+            {
+              "name": "commenceTimeFrom",
+              "value": "={{ $now.toUTC().toISO() }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "2532e78b-4c0c-5fc1-bc6b-5f344fc7fdc4",
+      "name": "Check the price",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        440,
+        300
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "name": "OddsRelay API key"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "d91c0ac2-70c6-5a76-9203-d413d56d5f5c",
+              "leftValue": "={{ $json.cost }}",
+              "rightValue": "={{ $('Settings').first().json.maxTokensPerRun }}",
+              "operator": {
+                "type": "number",
+                "operation": "lte"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "f02a0571-e792-50bf-b33c-1669b4757b9e",
+      "name": "Within your cap?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        660,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "errorMessage": "=The price check says this call costs {{ $json.cost }} tokens, more than maxTokensPerRun ({{ $('Settings').first().json.maxTokensPerRun }}). Narrow the filters in Settings or raise the cap."
+      },
+      "id": "48727685-4245-56c7-a843-b36926dbfd9f",
+      "name": "Stop: over your cap",
+      "type": "n8n-nodes-base.stopAndError",
+      "typeVersion": 1,
+      "position": [
+        880,
+        480
+      ]
+    },
+    {
+      "parameters": {
+        "url": "=https://api.oddsrelay.io/v2/odds/{{ $('Settings').first().json.board }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "sports",
+              "value": "={{ $('Settings').first().json.sports }}"
+            },
+            {
+              "name": "markets",
+              "value": "={{ $('Settings').first().json.markets }}"
+            },
+            {
+              "name": "bookmakers",
+              "value": "={{ $('Settings').first().json.bookmakers }}"
+            },
+            {
+              "name": "exchanges",
+              "value": "={{ $('Settings').first().json.exchanges }}"
+            },
+            {
+              "name": "commenceTimeFrom",
+              "value": "={{ $now.toUTC().toISO() }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "cb95ee39-83db-5c97-890e-cc497fce9f79",
+      "name": "Read the matched board",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1140,
+        300
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "name": "OddsRelay API key"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// One row per bookmaker back price, beside the lowest exchange lay price for the same outcome.\n// rating = back / lay x 100. With your commission c as a fraction, the rating after commission is\n// back x (1 - c) / (lay - c) x 100, the same figure when c is 0. The prices carry no commission.\nconst c = Number($('Settings').first().json.commissionPercent) / 100;\nconst round = (x) => Math.round(x * 100) / 100;\n// UK time as yyyy-mm-dd hh:mm, which sorts correctly in a sheet ('sv-SE' writes dates in that order)\nconst ukTime = (t) => new Date(t).toLocaleString('sv-SE', { timeZone: 'Europe/London' }).slice(0, 16);\nconst checkedAt = ukTime(Date.now());\nconst rows = [];\n\nfor (const ev of $input.first().json.data ?? []) {\n  const event = ev.home_team && ev.away_team ? `${ev.home_team} v ${ev.away_team}` : (ev.event_name ?? ev.venue ?? ev.sport_title);\n  for (const market of ev.markets ?? []) {\n    for (const o of market.outcomes ?? []) {\n      const lays = Array.isArray(o.lay) ? o.lay.filter((l) => l.price > 1) : [];\n      if (!lays.length) continue;\n      const lay = lays.reduce((low, l) => (l.price < low.price ? l : low));\n      const outcome = o.point == null ? o.name : `${o.name} ${o.point}`;\n      for (const back of o.back ?? []) {\n        if (!(back.price > 1)) continue;\n        rows.push({\n          json: {\n            row_key: [ev.event_id, market.key, outcome, back.bookmaker].join('|'),\n            checked_at: checkedAt,\n            kick_off: ev.commence_time ? ukTime(ev.commence_time) : '',\n            competition: ev.sport_title,\n            event,\n            market: market.key,\n            outcome,\n            bookmaker: back.bookmaker,\n            back: back.price,\n            exchange: lay.exchange,\n            lay: lay.price,\n            lay_available: lay.available ?? '',\n            rating: round((back.price / lay.price) * 100),\n            rating_after_commission: round(((back.price * (1 - c)) / (lay.price - c)) * 100),\n            back_link: back.link ?? '',\n            lay_link: lay.link ?? '',\n          },\n        });\n      }\n    }\n  }\n}\n\nreturn rows;\n"
+      },
+      "id": "2585d95f-7b4a-5501-b620-6599e1fc4740",
+      "name": "One row per back and lay",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1380,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "mode": "list",
+          "value": ""
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "list",
+          "value": ""
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [
+            "row_key"
+          ],
+          "schema": []
+        },
+        "options": {}
+      },
+      "id": "0507d5cd-e55c-58d4-aa7d-92d73204855e",
+      "name": "Add or update rows",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        1700,
+        300
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "name": "Google Sheets account"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "On a schedule": {
+      "main": [
+        [
+          {
+            "node": "Settings",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Settings": {
+      "main": [
+        [
+          {
+            "node": "Check the price",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check the price": {
+      "main": [
+        [
+          {
+            "node": "Within your cap?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Within your cap?": {
+      "main": [
+        [
+          {
+            "node": "Read the matched board",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Stop: over your cap",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read the matched board": {
+      "main": [
+        [
+          {
+            "node": "One row per back and lay",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "One row per back and lay": {
+      "main": [
+        [
+          {
+            "node": "Add or update rows",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

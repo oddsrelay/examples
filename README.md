@@ -2,7 +2,8 @@
 
 Small Python programs that read the [OddsRelay](https://oddsrelay.io) odds API, one folder each.
 Python 3.9 or later and nothing else: there are no packages to install. The one exception is
-flumine-bookmaker-prices, which runs inside flumine (Python 3.10 or later).
+flumine-bookmaker-prices, which runs inside flumine (Python 3.10 or later). The two `n8n-` folders hold
+[n8n](https://n8n.io) workflows instead, built on n8n's own HTTP Request node: import the JSON file into n8n.
 
 | Folder | What it shows |
 |---|---|
@@ -12,6 +13,8 @@ flumine-bookmaker-prices, which runs inside flumine (Python 3.10 or later).
 | [csv-export](csv-export) | Any matched board written to CSV, one row per back or lay offer. |
 | [racing-board](racing-board) | The next races' prices from a racing board, posted to a Discord channel or a Telegram chat, and only when the board has changed. |
 | [flumine-bookmaker-prices](flumine-bookmaker-prices) | UK and Irish bookmakers' win prices beside Betfair's in a [flumine](https://github.com/betcode-org/flumine) strategy: a background worker polls the raw board and hands each new board to the strategy. |
+| [n8n-oddsmatcher-sheets](n8n-oddsmatcher-sheets) | An n8n workflow that keeps a Google Sheet of bookmaker back prices beside the lowest exchange lay, rated, with new rows added and earlier ones updated on a schedule. |
+| [n8n-price-moves-telegram](n8n-price-moves-telegram) | An n8n workflow that sends a Telegram message when a bookmaker's price moves past a threshold you set, comparing each check with the last. |
 
 ## Get a key
 
@@ -41,6 +44,8 @@ Every script takes `--help`. The [docs](https://oddsrelay.io/docs) cover routes 
   bookmaker prices and polls again.
 
 The HTTP helper is `api.py`. Each folder keeps an identical copy, so any folder can be lifted out on its own.
+The n8n workflows keep the key in an n8n Header Auth credential (`x-api-key`) and price each call with
+`quote=true` before they read, stopping above the cap set in their Settings node.
 
 ## Tests
 
@@ -50,7 +55,10 @@ They make no network calls and need no key. The flumine example's tests are skip
 
 ```sh
 for m in */main.py; do (cd "$(dirname "$m")" && python3 -m unittest -v) || break; done
+for t in */test.mjs; do node --test "$t" || break; done
 ```
+
+The second line runs the n8n workflows' Code nodes on the same fixtures (Node.js 18 or later).
 
 ## More from OddsRelay
 

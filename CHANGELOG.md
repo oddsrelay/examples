@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- `n8n-oddsmatcher-sheets` and `n8n-price-moves-telegram`: two n8n workflows on the HTTP Request node, with
+  the key in a Header Auth credential and a free `quote=true` price check against a cap before each read. The
+  first adds or updates one Google Sheets row per bookmaker back price beside the lowest exchange lay, rated
+  with and without commission, matched on `row_key`. The second keeps the last price of each outcome in the
+  workflow's static data and sends the moves at or past a threshold to Telegram in one message.
 - `flumine-bookmaker-prices`: UK and Irish bookmakers' win prices beside Betfair's in a flumine strategy. A
   `BackgroundWorker` polls the next races on the raw board with `If-None-Match` and hands each new board to the
   strategy as a `CustomEvent`; races are matched to Betfair markets by start time, and prices to runners by name. It

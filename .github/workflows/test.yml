@@ -25,3 +25,6 @@ jobs:
         run: pip install -r flumine-bookmaker-prices/requirements.txt
       - name: Tests (no network, no key)
         run: for m in */main.py; do (cd "$(dirname "$m")" && python -m unittest -v) || exit 1; done
+      - name: n8n workflows, their Code nodes on the fixtures (no network, no key)
+        if: matrix.python == '3.13'
+        run: for t in */test.mjs; do node --test "$t" || exit 1; done
