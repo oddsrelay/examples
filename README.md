@@ -3,7 +3,8 @@
 Small Python programs that read the [OddsRelay](https://oddsrelay.io) odds API, one folder each.
 Python 3.9 or later and nothing else: there are no packages to install. The one exception is
 flumine-bookmaker-prices, which runs inside flumine (Python 3.10 or later). The two `n8n-` folders hold
-[n8n](https://n8n.io) workflows instead, built on n8n's own HTTP Request node: import the JSON file into n8n.
+[n8n](https://n8n.io) workflows instead, built on n8n's own HTTP Request node: import the JSON file into n8n. And
+val-town-price-drops is a [Val Town](https://www.val.town) val in TypeScript, which runs on a schedule there.
 
 | Folder | What it shows |
 |---|---|
@@ -15,6 +16,7 @@ flumine-bookmaker-prices, which runs inside flumine (Python 3.10 or later). The 
 | [flumine-bookmaker-prices](flumine-bookmaker-prices) | UK and Irish bookmakers' win prices beside Betfair's in a [flumine](https://github.com/betcode-org/flumine) strategy: a background worker polls the raw board and hands each new board to the strategy. |
 | [n8n-oddsmatcher-sheets](n8n-oddsmatcher-sheets) | An n8n workflow that keeps a Google Sheet of bookmaker back prices beside the lowest exchange lay, rated, with new rows added and earlier ones updated on a schedule. |
 | [n8n-price-moves-telegram](n8n-price-moves-telegram) | An n8n workflow that sends a Telegram message when a bookmaker's price moves past a threshold you set, comparing each check with the last. |
+| [val-town-price-drops](val-town-price-drops) | A Val Town val that emails you, or posts to a webhook, when a bookmaker's price drops by a percentage you set since the last run. |
 
 ## Get a key
 
@@ -45,7 +47,8 @@ Every script takes `--help`. The [docs](https://oddsrelay.io/docs) cover routes 
 
 The HTTP helper is `api.py`. Each folder keeps an identical copy, so any folder can be lifted out on its own.
 The n8n workflows keep the key in an n8n Header Auth credential (`x-api-key`) and price each call with
-`quote=true` before they read, stopping above the cap set in their Settings node.
+`quote=true` before they read, stopping above the cap set in their Settings node. The Val Town val reads the key
+from the val's environment variables and does the same against `MAX_TOKENS_PER_RUN`.
 
 ## Tests
 
@@ -58,7 +61,8 @@ for m in */main.py; do (cd "$(dirname "$m")" && python3 -m unittest -v) || break
 for t in */test.mjs; do node --test "$t" || break; done
 ```
 
-The second line runs the n8n workflows' Code nodes on the same fixtures (Node.js 18 or later).
+The second line runs the n8n workflows' Code nodes on the same fixtures (Node.js 18 or later), and the Val Town
+val with its storage and email stood in for (Node.js 22.18 or later, which runs TypeScript as it is).
 
 ## More from OddsRelay
 

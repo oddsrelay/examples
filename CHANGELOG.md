@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- `val-town-price-drops`: a Val Town cron val in TypeScript that keeps the last price of each bookmaker outcome
+  in the val's blob storage and sends the drops of `DROP_PERCENT` or more since the last run in one message, by
+  email or to a webhook (`ALERT_WEBHOOK_URL`). The key comes from the val's environment variables, and a free
+  `quote=true` price check against `MAX_TOKENS_PER_RUN` comes before each read.
 - `n8n-oddsmatcher-sheets` and `n8n-price-moves-telegram`: two n8n workflows on the HTTP Request node, with
   the key in a Header Auth credential and a free `quote=true` price check against a cap before each read. The
   first adds or updates one Google Sheets row per bookmaker back price beside the lowest exchange lay, rated
