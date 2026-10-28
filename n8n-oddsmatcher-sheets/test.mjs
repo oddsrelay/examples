@@ -13,12 +13,15 @@ const rows = (body, settings) =>
     .map((item) => item.json);
 
 test('a back price beside the lay, rated with and without commission', () => {
-  const out = rows(read('../fixtures/v2-odds-type.standard_filtered.json'), { commissionPercent: 2 });
+  const board = read('../fixtures/v2-odds-type.standard_filtered.json');
+  const ev = board.data[0];
+  const outcome = ev.markets[0].outcomes[0].name;
+  const out = rows(board, { commissionPercent: 2 });
   assert.equal(out.length, 1);
   const [row] = out;
-  assert.equal(row.row_key, 'or_evt_917dd44bce05|h2h|Sijia Wei|william_hill');
+  assert.equal(row.row_key, `${ev.event_id}|h2h|${outcome}|william_hill`);
+  assert.equal(row.event, `${ev.home_team} v ${ev.away_team}`);
   assert.equal(row.kick_off, '2026-09-17 04:00'); // 03:00 UTC is 04:00 in UK summer time
-  assert.equal(row.event, 'Sijia Wei v Zhuoxuan Bai');
   assert.deepEqual([row.bookmaker, row.back, row.exchange, row.lay, row.lay_available], ['william_hill', 2.9, 'betfair_exchange', 3.45, 175]);
   assert.equal(row.rating, 84.06); // 2.9 / 3.45 x 100
   assert.equal(row.rating_after_commission, 82.86); // 2.9 x 0.98 / 3.43 x 100
