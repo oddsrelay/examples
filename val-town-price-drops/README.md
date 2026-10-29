@@ -4,6 +4,8 @@ A [Val Town](https://www.val.town) val that tells you when a UK or Irish bookmak
 you set, by email or on a webhook (Discord, Slack or any URL that takes a JSON POST). It runs on a schedule on Val
 Town, so there is nothing to host. `alert.ts` is the whole val.
 
+The val is public on Val Town: [oddsrelay/uk-price-drop-alert](https://www.val.town/x/oddsrelay/uk-price-drop-alert).
+
 Each run first asks the API what the raw board read costs (`quote=true`, which is free). Above `MAX_TOKENS_PER_RUN`
 it reads nothing and the run fails with the price. Otherwise it reads up to 250 events, soonest kick-off first, and
 compares each bookmaker price with the one stored at the last run, in the val's own blob storage. Every drop of
