@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+- `n8n-back-lay-log-sheets`: an n8n workflow that logs close back and lay pairs to Google Sheets. It reads the
+  Standard matched board for a sport or chosen competitions, puts each bookmaker back price beside the lowest
+  exchange lay with enough money available at that price, and keeps pairs at or above a rating after
+  commission. It reads the sheet first and adds a row only for a pair the sheet does not hold yet, or one whose
+  back or lay price has moved by a set percentage since its last row, with the earlier prices beside it.
+- `n8n-oddsmatcher-sheets` now reads the sheet before it writes: rows whose pair has left the board are
+  removed, bottom up, in runs of neighbouring rows. It also takes a competition list, a lowest rating and the
+  least money available at the lay price, and its sheet is named once, in Settings.
+- Both Google Sheets workflows try each API call three times, then stop with the status, the API's error code
+  and request id and what to do, leaving the sheet unchanged.
 - `n8n-oddsmatcher-sheets` and `n8n-price-moves-telegram`: two n8n workflows on the HTTP Request node, with
   the key in a Header Auth credential and a free `quote=true` price check against a cap before each read. The
   first adds or updates one Google Sheets row per bookmaker back price beside the lowest exchange lay, rated

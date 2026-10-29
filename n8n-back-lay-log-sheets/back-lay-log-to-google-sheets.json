@@ -1,0 +1,564 @@
+{
+  "name": "Log close UK back and lay prices and their moves to Google Sheets with OddsRelay",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## Log close back and lay prices and their moves in Google Sheets\n\n### How it works\nFor people in the UK and Ireland who log bookmaker back prices that sit close to exchange lay prices. On a schedule, **Check the price** asks the OddsRelay API what the Standard matched board call costs (free), and the board is read only within your cap. **Compare with the log** rates each back price against the lowest exchange lay with enough money available, after your commission, and keeps pairs at or above your rating. A pair gets a row when the sheet has none for it, or when its back or lay price has moved since its last row, so repeat runs add no duplicates.\n\nA failing API call is tried three times, then the run stops with its error code, leaving the sheet unchanged. The log only grows, so archive old rows now and then.\n\n### Setup\n1. Sign up at [app.oddsrelay.io](https://app.oddsrelay.io/signup) and copy your API key. Free gives you 50,000 tokens for 14 days from sign-up, with no card, then no tokens until you choose a plan, on the same key.\n2. Create a **Header Auth** credential with Name `x-api-key` and your key as the Value, and pick it in both HTTP Request nodes.\n3. Put an empty Google Sheet's URL in `sheetUrl` in **Settings** (its tab in `sheetName`) and connect Google Sheets in both sheet nodes.\n4. Run it once, check the sheet, then publish it.\n\n### Customization\nIn **Settings**: `sport` or `competitions`, `markets`, `bookmakers` and `exchanges` (keys from `/v2/sports` and `/v2/bookmakers`), `commissionPercent`, `minRating`, `minLayAvailable`, `minMovePercent` and `maxTokensPerRun`. Each run spends the call's price: schedule it to suit your plan. Paid plans are for your own use; a tool that serves other people needs Enterprise.",
+        "height": 1140,
+        "width": 680,
+        "color": 1
+      },
+      "id": "acb03432-03fd-587b-b374-49b7e45ff2b1",
+      "name": "Overview",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -760,
+        -100
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## 1. Settings and a free price check\nYour filters, sheet and cap. The board is read only when the free price check is within `maxTokensPerRun`; above it, the run stops and shows the price.",
+        "height": 520,
+        "width": 1060,
+        "color": 7
+      },
+      "id": "98efb6d3-225e-5f23-bad6-083a0303e4a3",
+      "name": "Section: settings and price check",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -40,
+        140
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## 2. Read the board and the log\nThe Standard matched board for your filters, then the rows already in your sheet.",
+        "height": 400,
+        "width": 460,
+        "color": 7
+      },
+      "id": "b62485da-ff4d-5edf-958d-0ed3f33f1a07",
+      "name": "Section: read the board and the log",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1060,
+        140
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## 3. Log what is new or has moved\nPairs at or above your rating get a row when the sheet has none for them, or when a price has moved since their last row.",
+        "height": 400,
+        "width": 500,
+        "color": 7
+      },
+      "id": "79c51f29-e3b4-5fd1-ac82-a6bad9f99871",
+      "name": "Section: log what is new or has moved",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1540,
+        140
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## If a call fails\nEach OddsRelay call is tried three times. Then the run stops with the API's error code, request id and what to do, and the sheet is not changed.",
+        "height": 320,
+        "width": 460,
+        "color": 7
+      },
+      "id": "c920eabf-7aca-5473-ad08-ef2d327536e3",
+      "name": "Section: if a call fails",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1060,
+        580
+      ]
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes",
+              "minutesInterval": 15
+            }
+          ]
+        }
+      },
+      "id": "467912a5-be60-5a99-8657-a8bd338011ce",
+      "name": "On a schedule",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "00a96ccd-7f42-5196-80b0-6c9583b30147",
+              "name": "sheetUrl",
+              "value": "PASTE_YOUR_GOOGLE_SHEET_URL",
+              "type": "string"
+            },
+            {
+              "id": "7283b720-6760-57a9-a529-5eacf497d1a9",
+              "name": "sheetName",
+              "value": "Sheet1",
+              "type": "string"
+            },
+            {
+              "id": "5133632e-1fcc-50b9-9c7e-880e8cc4b2b6",
+              "name": "sport",
+              "value": "soccer",
+              "type": "string"
+            },
+            {
+              "id": "1215774b-d0c3-5a3c-bb40-3515772d0dca",
+              "name": "competitions",
+              "value": "soccer_english_premier_league,soccer_england_championship",
+              "type": "string"
+            },
+            {
+              "id": "ad788fff-067b-54c9-a36a-eab0d87dc735",
+              "name": "markets",
+              "value": "h2h",
+              "type": "string"
+            },
+            {
+              "id": "a4bb1efb-2bb2-59d7-9dbd-fced8be28f29",
+              "name": "bookmakers",
+              "value": "william_hill,paddy_power,sky_bet",
+              "type": "string"
+            },
+            {
+              "id": "66657d65-0ac3-5bf6-9af8-335bb0eaa9d8",
+              "name": "exchanges",
+              "value": "betfair_exchange,smarkets,matchbook",
+              "type": "string"
+            },
+            {
+              "id": "d4c474ae-6467-5e40-be8f-ffaf0e551057",
+              "name": "commissionPercent",
+              "value": 2,
+              "type": "number"
+            },
+            {
+              "id": "5645e6f0-eddd-51a9-8003-cc0784732fb6",
+              "name": "minRating",
+              "value": 95,
+              "type": "number"
+            },
+            {
+              "id": "cdcf8504-bf90-53ac-baa4-391e0c776be0",
+              "name": "minLayAvailable",
+              "value": 20,
+              "type": "number"
+            },
+            {
+              "id": "94fab616-db38-5cf4-905b-0a3d1da58a72",
+              "name": "minMovePercent",
+              "value": 0,
+              "type": "number"
+            },
+            {
+              "id": "85fba08a-b6a9-55e0-858b-13e4fcf5379a",
+              "name": "maxTokensPerRun",
+              "value": 100,
+              "type": "number"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "aebb4e78-1e73-5510-b6d9-9de6e190642b",
+      "name": "Settings",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        220,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://api.oddsrelay.io/v2/odds/standard",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "quote",
+              "value": "true"
+            },
+            {
+              "name": "sports",
+              "value": "={{ $('Settings').first().json.competitions || $('Settings').first().json.sport }}"
+            },
+            {
+              "name": "markets",
+              "value": "={{ $('Settings').first().json.markets }}"
+            },
+            {
+              "name": "bookmakers",
+              "value": "={{ $('Settings').first().json.bookmakers }}"
+            },
+            {
+              "name": "exchanges",
+              "value": "={{ $('Settings').first().json.exchanges }}"
+            },
+            {
+              "name": "commenceTimeFrom",
+              "value": "={{ $now.toUTC().toISO() }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "698e9f1f-eee5-506a-a502-ad9322115736",
+      "name": "Check the price",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        440,
+        300
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "name": "OddsRelay API key"
+        }
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000,
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "2a7ad346-9b54-5ae9-9b0a-750db9a20936",
+              "leftValue": "={{ $json.cost }}",
+              "rightValue": "={{ $('Settings').first().json.maxTokensPerRun }}",
+              "operator": {
+                "type": "number",
+                "operation": "lte"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "f2386b54-6514-591d-9e9e-706ee90f1010",
+      "name": "Within your cap?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        660,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "errorMessage": "=The price check says this call costs {{ $json.cost }} tokens, more than maxTokensPerRun ({{ $('Settings').first().json.maxTokensPerRun }}). Narrow the filters in Settings or raise the cap."
+      },
+      "id": "3bc96f47-1dac-5646-ac46-e1e4853bcf73",
+      "name": "Stop: over your cap",
+      "type": "n8n-nodes-base.stopAndError",
+      "typeVersion": 1,
+      "position": [
+        880,
+        480
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://api.oddsrelay.io/v2/odds/standard",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "sports",
+              "value": "={{ $('Settings').first().json.competitions || $('Settings').first().json.sport }}"
+            },
+            {
+              "name": "markets",
+              "value": "={{ $('Settings').first().json.markets }}"
+            },
+            {
+              "name": "bookmakers",
+              "value": "={{ $('Settings').first().json.bookmakers }}"
+            },
+            {
+              "name": "exchanges",
+              "value": "={{ $('Settings').first().json.exchanges }}"
+            },
+            {
+              "name": "commenceTimeFrom",
+              "value": "={{ $now.toUTC().toISO() }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "dede652f-a66e-5617-a7c7-30ab3d2c366a",
+      "name": "Read the matched board",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1120,
+        300
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "name": "OddsRelay API key"
+        }
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000,
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "operation": "read",
+        "documentId": {
+          "__rl": true,
+          "mode": "url",
+          "value": "={{ $('Settings').first().json.sheetUrl }}"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "={{ $('Settings').first().json.sheetName }}"
+        },
+        "options": {}
+      },
+      "id": "4f5106eb-b7e4-5691-a6de-a58f4f399703",
+      "name": "Read the log",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        1340,
+        300
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "name": "Google Sheets account"
+        }
+      },
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "jsCode": "// Each bookmaker back price beside the lowest exchange lay with at least minLayAvailable at that price, rated:\n// back / lay x 100, and after your commission c, back x (1 - c) / (lay - c) x 100. The prices carry no commission.\n// A pair rated at or above minRating is logged when the sheet has no row for it yet, or when its back or lay price\n// has moved by minMovePercent or more since its last row, so a run that finds nothing new writes nothing.\nconst s = $('Settings').first().json;\nconst c = Number(s.commissionPercent) / 100;\nconst round = (x) => Math.round(x * 100) / 100;\n// UK time as yyyy-mm-dd hh:mm:ss, which sorts as text ('sv-SE' writes dates in that order)\nconst ukTime = (t) => new Date(t).toLocaleString('sv-SE', { timeZone: 'Europe/London' });\nconst checkedAt = ukTime(Date.now());\n\n// The last row of each pair in the sheet: the latest checked_at, or the lower row of two with the same time\nconst last = new Map();\nfor (const { json: row } of $input.all()) {\n  if (!row.pair_key) continue;\n  const key = String(row.pair_key);\n  if (!last.has(key) || String(row.checked_at) >= String(last.get(key).checked_at)) last.set(key, row);\n}\n\n// A move in percent; a price the sheet does not hold as a number counts as moved\nconst move = (now, before) => (Number(before) > 1 ? ((now - Number(before)) / Number(before)) * 100 : Infinity);\nconst big = (m) => m !== 0 && Math.abs(m) >= Number(s.minMovePercent);\nconst rows = [];\n\nfor (const ev of $('Read the matched board').first().json.data ?? []) {\n  const event = ev.home_team && ev.away_team ? `${ev.home_team} v ${ev.away_team}` : (ev.event_name ?? ev.venue ?? ev.sport_title);\n  for (const market of ev.markets ?? []) {\n    for (const o of market.outcomes ?? []) {\n      const lays = Array.isArray(o.lay) ? o.lay.filter((l) => l.price > 1 && (l.available ?? 0) >= Number(s.minLayAvailable)) : [];\n      if (!lays.length) continue;\n      const lay = lays.reduce((low, l) => (l.price < low.price ? l : low));\n      const outcome = o.point == null ? o.name : `${o.name} ${o.point}`;\n      for (const back of o.back ?? []) {\n        if (!(back.price > 1)) continue;\n        const ratingAfterCommission = round(((back.price * (1 - c)) / (lay.price - c)) * 100);\n        if (ratingAfterCommission < Number(s.minRating)) continue;\n        const pairKey = [ev.event_id, market.key, outcome, back.bookmaker].join('|');\n        const before = last.get(pairKey);\n        if (before && !big(move(back.price, before.back)) && !big(move(lay.price, before.lay))) continue;\n        rows.push({\n          json: {\n            checked_at: checkedAt,\n            kick_off: ev.commence_time ? ukTime(ev.commence_time).slice(0, 16) : '',\n            competition: ev.sport_title,\n            event,\n            market: market.key,\n            outcome,\n            bookmaker: back.bookmaker,\n            back: back.price,\n            exchange: lay.exchange,\n            lay: lay.price,\n            lay_available: lay.available ?? '',\n            rating: round((back.price / lay.price) * 100),\n            rating_after_commission: ratingAfterCommission,\n            change: before ? 'moved' : 'new',\n            back_before: before ? before.back : '',\n            lay_before: before ? before.lay : '',\n            pair_key: pairKey,\n          },\n        });\n      }\n    }\n  }\n}\n\nreturn rows;\n"
+      },
+      "id": "3dc5ee00-861a-5084-b66d-e1ff0a91dc2a",
+      "name": "Compare with the log",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1600,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "mode": "url",
+          "value": "={{ $('Settings').first().json.sheetUrl }}"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "={{ $('Settings').first().json.sheetName }}"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [],
+          "schema": []
+        },
+        "options": {
+          "cellFormat": "RAW"
+        }
+      },
+      "id": "6c33bafb-71ef-5886-a2c9-def73be96703",
+      "name": "Add the new rows",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        1840,
+        300
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// A call that still failed after its three tries: one message with the status, the API's error code and\n// request id, and what to do next. n8n keeps the API's reply in the error message as: status - \"body\".\nconst j = $input.first().json;\nconst e = j.error && typeof j.error === 'object' ? j.error : { message: String(j.error ?? '') };\nconst status = Number(e.status ?? e.httpCode ?? j.details?.httpCode) || 0;\nlet body = j.details?.body;\nif (body === undefined) {\n  try {\n    body = JSON.parse(JSON.parse(String(e.message).replace(/^\\d{3} - /, '')));\n  } catch {\n    body = {};\n  }\n}\nconst api = (body && body.error) || {};\nconst next =\n  {\n    401: 'Check the API key in the Header Auth credential.',\n    402: 'Your token balance is below this call\\'s price: narrow the filters in Settings, or choose a plan at app.oddsrelay.io.',\n    403: 'A sport, market or venue in Settings is outside your plan.',\n    429: 'Too many calls: run the workflow less often.',\n  }[status] ?? (status >= 500 || !status ? 'The next scheduled run tries again.' : 'Check the values in Settings.');\nconst what = [status || 'no reply', api.code, api.message].filter(Boolean).join(', ');\nconst id = api.request_id ? `, request id ${api.request_id}` : '';\nreturn [{ json: { message: `The OddsRelay API call failed after three tries (${what}${id}). ${next}` } }];\n"
+      },
+      "id": "604fc627-4887-5d9c-85ad-cb69165efb7a",
+      "name": "Explain the failure",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1120,
+        700
+      ]
+    },
+    {
+      "parameters": {
+        "errorMessage": "={{ $json.message }}"
+      },
+      "id": "631f2ce1-2a8f-5856-9b1a-ab117cde4e35",
+      "name": "Stop: the API call failed",
+      "type": "n8n-nodes-base.stopAndError",
+      "typeVersion": 1,
+      "position": [
+        1340,
+        700
+      ]
+    }
+  ],
+  "connections": {
+    "On a schedule": {
+      "main": [
+        [
+          {
+            "node": "Settings",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Settings": {
+      "main": [
+        [
+          {
+            "node": "Check the price",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check the price": {
+      "main": [
+        [
+          {
+            "node": "Within your cap?",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Explain the failure",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Within your cap?": {
+      "main": [
+        [
+          {
+            "node": "Read the matched board",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Stop: over your cap",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read the matched board": {
+      "main": [
+        [
+          {
+            "node": "Read the log",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Explain the failure",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Explain the failure": {
+      "main": [
+        [
+          {
+            "node": "Stop: the API call failed",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read the log": {
+      "main": [
+        [
+          {
+            "node": "Compare with the log",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Compare with the log": {
+      "main": [
+        [
+          {
+            "node": "Add the new rows",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}
