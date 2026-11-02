@@ -12,6 +12,7 @@ val-town-price-drops is a [Val Town](https://www.val.town) val in TypeScript, wh
 | [odds-screen](odds-screen) | The best back price for each selection across every venue on the raw board, and which venues offer it. |
 | [conditional-polling](conditional-polling) | Polling a board with `ETag` and `If-None-Match`: an unchanged board comes back as an empty `304 Not Modified` that costs nothing. |
 | [csv-export](csv-export) | Any matched board written to CSV, one row per back or lay offer. |
+| [historical-odds-in-python](historical-odds-in-python) | One bookmaker's price changes for one event over a window, with the number of moves and any recording gaps. |
 | [racing-board](racing-board) | The next races' prices from a racing board, posted to a Discord channel or a Telegram chat, and only when the board has changed. |
 | [flumine-bookmaker-prices](flumine-bookmaker-prices) | UK and Irish bookmakers' win prices beside Betfair's in a [flumine](https://github.com/betcode-org/flumine) strategy: a background worker polls the raw board and hands each new board to the strategy. |
 | [n8n-oddsmatcher-sheets](n8n-oddsmatcher-sheets) | An n8n workflow that keeps a Google Sheet of bookmaker back prices beside the lowest exchange lay, rated: on a schedule it adds new rows, updates the ones it wrote before and removes those that have left the board. |
