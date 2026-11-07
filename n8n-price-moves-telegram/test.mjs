@@ -46,10 +46,21 @@ test('later checks send the moves at or past the threshold, biggest first, and n
   assert.equal(rest.length, 0);
   const lines = text.split('\n');
   assert.equal(lines[0], 'Price moves of 10% or more:');
-  assert.equal(lines[3], `Bet600 correct_score, ${outcome(moved, 'bet600', 'correct_score', 1).name}: 4.75 → 6 (+26.3%)`);
+  assert.equal(lines[3], `Bet600 correct\\_score, ${outcome(moved, 'bet600', 'correct_score', 1).name}: 4.75 → 6 (+26.3%)`);
   assert.equal(lines[6], `Bet600 h2h, ${outcome(moved, 'bet600', 'h2h', 0).name}: 1.7 → 2 (+17.6%)`);
   assert.equal(lines.length, 7);
   assert.deepEqual(check(moved, store), []); // a move is sent once
+});
+
+// The Telegram node sends the text as Markdown (legacy): a bare _ there makes Telegram refuse the whole message
+test('a move on correct_score reaches Telegram with its underscore escaped', () => {
+  const store = {};
+  check(page(), store);
+  const moved = page();
+  outcome(moved, 'bet600', 'correct_score', 1).price = 6.0;
+  const [text] = check(moved, store);
+  assert.ok(text.includes('Bet600 correct\\_score, '), text);
+  assert.doesNotMatch(text, /(?<!\\)_/);
 });
 
 test('prices are forgotten once their event starts', () => {
