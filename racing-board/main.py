@@ -114,6 +114,7 @@ def main() -> None:
     args = ap.parse_args()
     now = datetime.now(timezone.utc).replace(microsecond=0)
     path, params = f"/v2/odds/{args.board}", {
+        "region": "uk",  # the racing boards are matched boards, served for the UK & Ireland only
         "sports": "horse_racing", "bookmakers": args.bookmakers, "format": "bare",  # bare: the ETag follows the events
         "commenceTimeFrom": now.isoformat(), "commenceTimeTo": (now + timedelta(hours=args.hours)).isoformat()}
     if not afford(get(path, {**params, "quote": "true"})[2], args.max_tokens):

@@ -14,7 +14,7 @@ python3 main.py --board each-way --out each-way.csv
 |---|---|
 | `--board` | Any matched board: `standard` (the default), `2up`, `dutching`, `each-way`, `extra-place`, `bog` |
 | `--sports`, `--bookmakers`, `--exchanges`, `--markets` | Filters, passed to the API as given (comma-separated keys) |
-| `--region` | One region code, passed as given |
+| `--region` | One region code, passed as given; the matched boards are served for `uk` only |
 | `--out` | The file to write; `board.csv` by default |
 | `--max-tokens` | Spend up to this many tokens without asking |
 

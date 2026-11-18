@@ -56,7 +56,7 @@ board is paid for, then dropped). Without it, nothing caps the polls after the s
   comes from flumine.
 - If a poll fails, whatever the error, it is logged and the strategy's bookmaker prices are cleared, so it never
   reads stale ones. The next good poll fetches the whole board again.
-- The board is pre-match, so a market that has turned in play is left alone.
+- The poll leaves in-play events out (the raw board's default), so a market that has turned in play is left alone.
 
 ## What a table shows
 

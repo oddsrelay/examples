@@ -15,7 +15,7 @@ python3 main.py --sports tennis
 |---|---|
 | `--board` | `standard` (the default), `2up` or `bog`: the boards whose lay side is a plain list |
 | `--sports`, `--bookmakers`, `--exchanges`, `--markets` | Filters, passed to the API as given (comma-separated keys) |
-| `--region` | One region code, passed as given |
+| `--region` | One region code, passed as given; the matched boards are served for `uk` only (any other code is 403 `product_not_in_region`) |
 | `--commission` | Your exchange's commission as a fraction from 0 to 1 (such as `0.02`), used in the rating |
 | `--top` | How many rows to print |
 | `--max-tokens` | Spend up to this many tokens without asking |

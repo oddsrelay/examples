@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+- Regions: the API now serves 20 more regions beside the UK & Ireland. The README says which examples read which
+  regions; `odds-screen` documents a comma list of international codes on `--region`; `historical-odds-in-python`
+  takes `--region`; `racing-board` and `flumine-bookmaker-prices` name `region=uk` on their calls, so an account
+  whose home region is another one is not refused. The matched-board examples say they are `uk` only.
+- `flumine-bookmaker-prices` no longer calls the board "pre-match": in-play prices are served, and the poll leaves
+  them out.
+
 - `n8n-back-lay-log-sheets`: an n8n workflow that logs close back and lay pairs to Google Sheets. It reads the
   Standard matched board for a sport or chosen competitions, puts each bookmaker back price beside the lowest
   exchange lay with enough money available at that price, and keeps pairs at or above a rating after

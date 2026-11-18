@@ -20,6 +20,14 @@ val-town-price-drops is a [Val Town](https://www.val.town) val in TypeScript, wh
 | [n8n-price-moves-telegram](n8n-price-moves-telegram) | An n8n workflow that sends a Telegram message when a bookmaker's price moves past a threshold you set, comparing each check with the last. |
 | [val-town-price-drops](val-town-price-drops) | A Val Town val that emails you, or posts to a webhook, when a bookmaker's price drops by a percentage you set since the last run. |
 
+## Regions
+
+The API serves the UK & Ireland (`uk`) and 20 more regions. The matched boards, and so the oddsmatcher, racing and
+n8n examples here, are served for `uk` only: any other code is a 403 `product_not_in_region`. Raw odds, events and
+historical odds are served for every region, so `odds-screen` and `historical-odds-in-python` take `--region`, and
+`odds-screen` reads several international codes as one board (`--region us,global`). A call with no region reads
+`uk`; if your account's home region is another one, the API answers 400 `region_required` until you pass one.
+
 ## Get a key
 
 Sign up at [app.oddsrelay.io/signup](https://app.oddsrelay.io/signup) and copy your key from the dashboard.

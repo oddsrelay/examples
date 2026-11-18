@@ -21,7 +21,7 @@ python3 main.py --sports tennis
 |---|---|
 | `--board` | Any matched board: `standard` (the default), `2up`, `dutching`, `each-way`, `extra-place`, `bog` |
 | `--sports`, `--bookmakers`, `--exchanges`, `--markets` | Filters, passed to the API as given (comma-separated keys) |
-| `--region` | One region code, passed as given |
+| `--region` | One region code, passed as given; the matched boards are served for `uk` only (any other code is 403 `product_not_in_region`) |
 | `--every` | Seconds between polls, your choice |
 | `--polls` | How many requests to make |
 | `--max-tokens` | What a changed board may cost without asking |

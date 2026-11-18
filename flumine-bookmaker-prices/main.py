@@ -85,7 +85,7 @@ class BookmakerPrices(BaseStrategy):
         self.board, self.version = event.event, self.version + 1
 
     def check_market_book(self, market, market_book) -> bool:
-        # The board is pre-match, so a market that has turned in play is left alone.
+        # The poll does not ask the raw board for in-play prices, so a market that has turned in play is left alone.
         return market_book.status == "OPEN" and not market_book.inplay and market.seconds_to_start < self.minutes * 60
 
     def process_market_book(self, market, market_book) -> None:
@@ -142,7 +142,7 @@ def main() -> None:
     if args.max_tokens is None and not sys.stdin.isatty():  # nobody to ask, and nothing would cap the polls
         sys.exit("pass --max-tokens: this run has no terminal to ask at")
     # The board is in start-time order and a page is priced on the races it holds, so `limit` keeps a poll small.
-    params = {"sports": "horse_racing", "markets": "outright_winner", "bookmakers": args.bookmakers,
+    params = {"region": "uk", "sports": "horse_racing", "markets": "outright_winner", "bookmakers": args.bookmakers,
               "limit": args.races, "format": "bare"}  # bare: the ETag follows the races alone
     if not afford(get(PATH, {**params, "quote": "true"})[2], args.max_tokens):
         sys.exit("not fetched: the quote is over --max-tokens" if args.max_tokens is not None

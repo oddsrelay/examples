@@ -49,11 +49,13 @@ def main() -> None:
     ap.add_argument("--from", dest="start", required=True, help="the window's start, ISO 8601")
     ap.add_argument("--to", dest="end", required=True, help="the window's end, at most 24 hours later")
     ap.add_argument("--market", default="h2h", help="one market key")
+    ap.add_argument("--region", help="one region code; uk when left out")
     ap.add_argument("--outcome", help="one outcome's name; every outcome when left out")
     ap.add_argument("--max-tokens", type=int, help="spend up to this many tokens a page without asking")
     args = ap.parse_args()
     path = f"/v2/historical/events/{args.event_id}/odds"
-    params = {"from": args.start, "to": args.end, "bookmakers": args.bookmaker, "markets": args.market}
+    params = {"from": args.start, "to": args.end, "bookmakers": args.bookmaker, "markets": args.market,
+              "region": args.region}
     if not afford(get(path, {**params, "quote": "true"})[2], args.max_tokens):
         sys.exit("not fetched: pass --max-tokens, or say yes at the prompt")
     rows, gaps = [], []

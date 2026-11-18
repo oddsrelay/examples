@@ -15,6 +15,7 @@ python3 main.py or_evt_2d7dd94b072d --bookmaker bet365 --from 2026-10-24T11:00:0
 | `--bookmaker` | One bookmaker key, such as `bet365` (required) |
 | `--from`, `--to` | The window, ISO 8601, at most 24 hours apart (required) |
 | `--market` | One market key; `h2h` by default |
+| `--region` | One region code, such as `us`; `uk` when left out. History starts on a later day outside the UK & Ireland, and a window before a region's first day is a 400 `date_out_of_range` naming that day |
 | `--outcome` | One outcome's name; every outcome when left out |
 | `--max-tokens` | Spend up to this many tokens a page without asking |
 

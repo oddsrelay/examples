@@ -35,7 +35,8 @@ def best_prices(event: dict) -> dict[tuple[str, str], tuple[float, list[str]]]:
 def main() -> None:
     ap = argparse.ArgumentParser(description="Best back price per selection on the raw board.")
     for name in ("region", "sports", "bookmakers"):
-        ap.add_argument(f"--{name}", help="one region code" if name == "region" else "comma-separated keys")
+        region_help = "one region code, or a comma list of international codes (uk alone)"
+        ap.add_argument(f"--{name}", help=region_help if name == "region" else "comma-separated keys")
     ap.add_argument("--markets", default="h2h", help="comma-separated market keys")
     ap.add_argument("--limit", type=int, help="events in the page")
     ap.add_argument("--cursor", help="the cursor printed by the run before")
