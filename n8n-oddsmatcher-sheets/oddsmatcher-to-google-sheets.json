@@ -215,6 +215,10 @@
         "queryParameters": {
           "parameters": [
             {
+              "name": "region",
+              "value": "uk"
+            },
+            {
               "name": "quote",
               "value": "true"
             },
@@ -314,6 +318,10 @@
         "sendQuery": true,
         "queryParameters": {
           "parameters": [
+            {
+              "name": "region",
+              "value": "uk"
+            },
             {
               "name": "sports",
               "value": "={{ $('Settings').first().json.competitions || $('Settings').first().json.sport }}"

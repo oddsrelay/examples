@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- The three n8n workflows send `region=uk` on every OddsRelay request, so an account whose home region is another
+  one is not refused (`region_required`).
 - Regions: the API now serves 20 more regions beside the UK & Ireland. The README says which examples read which
   regions; `odds-screen` documents a comma list of international codes on `--region`; `historical-odds-in-python`
   takes `--region`; `racing-board` and `flumine-bookmaker-prices` name `region=uk` on their calls, so an account
