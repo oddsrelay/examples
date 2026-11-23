@@ -13,6 +13,7 @@ val-town-price-drops is a [Val Town](https://www.val.town) val in TypeScript, wh
 | [conditional-polling](conditional-polling) | Polling a board with `ETag` and `If-None-Match`: an unchanged board comes back as an empty `304 Not Modified` that costs nothing. |
 | [csv-export](csv-export) | Any matched board written to CSV, one row per back or lay offer. |
 | [historical-odds-in-python](historical-odds-in-python) | One bookmaker's price changes for one event over a window, with the number of moves and any recording gaps. |
+| [in-play-odds-in-python](in-play-odds-in-python) | One football event followed from before kick-off into play: each read prints whether it is in play and every venue's match-result price, under the same event id. |
 | [racing-board](racing-board) | The next races' prices from a racing board, posted to a Discord channel or a Telegram chat, and only when the board has changed. |
 | [flumine-bookmaker-prices](flumine-bookmaker-prices) | UK and Irish bookmakers' win prices beside Betfair's in a [flumine](https://github.com/betcode-org/flumine) strategy: a background worker polls the raw board and hands each new board to the strategy. |
 | [n8n-oddsmatcher-sheets](n8n-oddsmatcher-sheets) | An n8n workflow that keeps a Google Sheet of bookmaker back prices beside the lowest exchange lay, rated: on a schedule it adds new rows, updates the ones it wrote before and removes those that have left the board. |
@@ -24,9 +25,9 @@ val-town-price-drops is a [Val Town](https://www.val.town) val in TypeScript, wh
 
 The API serves the UK & Ireland (`uk`) and 20 more regions. The matched boards, and so the oddsmatcher, racing and
 n8n examples here, are served for `uk` only: any other code is a 403 `product_not_in_region`. Raw odds, events and
-historical odds are served for every region, so `odds-screen` and `historical-odds-in-python` take `--region`, and
-`odds-screen` reads several international codes as one board (`--region us,global`). A call with no region reads
-`uk`; if your account's home region is another one, the API answers 400 `region_required` until you pass one.
+historical odds are served for every region, so `odds-screen`, `historical-odds-in-python` and
+`in-play-odds-in-python` take `--region`, and `odds-screen` reads several international codes as one board
+(`--region us,global`). A call with no region reads `uk`; if your account's home region is another one, the API answers 400 `region_required` until you pass one.
 
 ## Get a key
 

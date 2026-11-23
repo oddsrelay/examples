@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- `in-play-odds-in-python`: follows one football event from before kick-off into play. Each read of the event
+  route with `inPlay=include` prints the time, `in_play` and every venue's match result (`h2h`) price, and says
+  once when the event goes in play, under the same event id. It takes `--region`, and a free `quote=true` price
+  check against `--max-tokens` comes before the reads.
 - The three n8n workflows send `region=uk` on every OddsRelay request, so an account whose home region is another
   one is not refused (`region_required`).
 - Regions: the API now serves 20 more regions beside the UK & Ireland. The README says which examples read which
